@@ -1,41 +1,71 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const login = (username, password) => {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const foundUser = users.find(
-      (u) => u.username === username && u.password === password
-    );
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem('user', JSON.stringify(foundUser));
-      return true;
-    }
-    return false;
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const docRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setIsAdmin(docSnap.data().isAdmin);
+        } else {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const register = async (email, password, isAdminFlag = false) => {
+    const res = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db, 'users', res.user.uid), {
+      email,
+      isAdmin: isAdminFlag
+    });
   };
 
-  const register = (username, password, isAdmin = false) => {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const newUser = { username, password, isAdmin };
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-    return login(username, password);
+  const login = async (email, password) => {
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const logout = async () => {
+    await signOut(auth);
   };
+
+  // Criar admin só 1 vez (depois comente ou remova)
+  useEffect(() => {
+    const criarAdmin = async () => {
+      try {
+        // Tente criar o admin (email e senha que quiser)
+        await register('admin@seusite.com', 'senhaSegura', true);
+        console.log('Admin criado!');
+      } catch (e) {
+        // Se já existir, ignora erro
+        console.log('Admin já existe ou erro:', e.message);
+      }
+    };
+
+    criarAdmin();
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAdmin, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,30 +1,50 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
-export const LoginForm = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+export default function LoginForm() {
   const { login } = useAuth();
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleSubmit = (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!login(username, password)) {
-      alert('Credenciais inválidas.');
-    } else {
-      navigate('/');
+
+    // Validação simples do email
+    if (!email || !email.includes('@')) {
+      alert('Por favor, digite um email válido.');
+      return;
     }
-  };
+
+    if (!password) {
+      alert('Por favor, digite a senha.');
+      return;
+    }
+
+    try {
+      await login(email, password);
+      alert('Login realizado com sucesso!');
+    } catch (error) {
+      alert('Erro ao fazer login: ' + error.message);
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit}>
-      <input placeholder="Usuário" onChange={(e) => setUsername(e.target.value)} />
-      <input type="password" placeholder="Senha" onChange={(e) => setPassword(e.target.value)} />
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Senha"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+        required
+      />
       <button type="submit">Entrar</button>
-      <p>
-        Não tem uma conta? <a href="/register">Cadastre-se</a>
-      </p>
     </form>
   );
-};
+}

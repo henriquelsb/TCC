@@ -1,15 +1,16 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
-import { HomePage } from './pages/HomePage';
-import { AdminPage } from './pages/AdminPage';
+import RegisterPage from './pages/RegisterPage';  // default export
+import HomePage from './pages/HomePage';          // default export
+import AdminPage from './pages/AdminPage';        // default export
 import { AuthProvider, useAuth } from './context/AuthContext';
+import Navigation from './components/Navigation';
 
 const ProtectedRoute = ({ children, adminOnly }) => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   if (!user) return <Navigate to="/login" />;
-  if (adminOnly && !user.isAdmin) return <Navigate to="/" />;
+  if (adminOnly && !isAdmin) return <Navigate to="/" />;
   return children;
 };
 
@@ -39,6 +40,7 @@ const AppRoutes = () => (
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
+      <Navigation />
       <AppRoutes />
     </BrowserRouter>
   </AuthProvider>

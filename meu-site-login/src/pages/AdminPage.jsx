@@ -1,13 +1,13 @@
-import { useAuth } from '../context/AuthContext';
+import React from 'react';
 
-export const AdminPage = () => {
-  const { user } = useAuth();
-
+const AdminPage = () => {
   return (
     <div>
-      <h1>Painel do Administrador</h1>
-      <p>Bem-vindo, {user.username}</p>
-      {/* Aqui você pode adicionar mais funcionalidades exclusivas do admin */}
+      <h1>Painel do Admin</h1>
+      <p>Bem-vindo, admin! Aqui você pode gerenciar o site.</p>
+      {/* Aqui você pode colocar funcionalidades administrativas */}
     </div>
   );
 };
+
+export default AdminPage;
