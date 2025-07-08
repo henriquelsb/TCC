@@ -22,8 +22,6 @@ export const AuthProvider = ({ children }) => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setIsAdmin(docSnap.data().isAdmin);
-        } else {
-          setIsAdmin(false);
         }
       } else {
         setIsAdmin(false);
@@ -36,7 +34,8 @@ export const AuthProvider = ({ children }) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     await setDoc(doc(db, 'users', res.user.uid), {
       email,
-      isAdmin: isAdminFlag
+      isAdmin: isAdminFlag,
+      profile: {} // perfil vazio inicialmente ✅
     });
   };
 
@@ -47,22 +46,6 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     await signOut(auth);
   };
-
-  // Criar admin só 1 vez (depois comente ou remova)
-  useEffect(() => {
-    const criarAdmin = async () => {
-      try {
-        // Tente criar o admin (email e senha que quiser)
-        await register('admin@seusite.com', 'senhaSegura', true);
-        console.log('Admin criado!');
-      } catch (e) {
-        // Se já existir, ignora erro
-        console.log('Admin já existe ou erro:', e.message);
-      }
-    };
-
-    criarAdmin();
-  }, []);
 
   return (
     <AuthContext.Provider value={{ user, isAdmin, login, register, logout }}>

@@ -1,11 +1,11 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { LoginPage } from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';  // default export
-import HomePage from './pages/HomePage';          // default export
-import AdminPage from './pages/AdminPage';        // default export
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import HomePage from './pages/HomePage';
+import AdminPage from './pages/AdminPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Navigation from './components/Navigation';
+import ProfilePage from './pages/ProfilePage'; // ✅
 
 const ProtectedRoute = ({ children, adminOnly }) => {
   const { user, isAdmin } = useAuth();
@@ -15,32 +15,47 @@ const ProtectedRoute = ({ children, adminOnly }) => {
 };
 
 const AppRoutes = () => (
-  <Routes>
-    <Route path="/login" element={<LoginPage />} />
-    <Route path="/register" element={<RegisterPage />} />
-    <Route
-      path="/"
-      element={
-        <ProtectedRoute>
-          <HomePage />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path="/admin"
-      element={
-        <ProtectedRoute adminOnly>
-          <AdminPage />
-        </ProtectedRoute>
-      }
-    />
-  </Routes>
+  <>
+    <nav style={{ padding: '10px' }}>
+      <Link to="/" style={{ marginRight: '10px' }}>Home</Link>
+      <Link to="/profile" style={{ marginRight: '10px' }}>Perfil</Link> {/* ✅ */}
+      <Link to="/login" style={{ marginRight: '10px' }}>Login</Link>
+      <Link to="/register">Cadastrar</Link>
+    </nav>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute adminOnly>
+            <AdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  </>
 );
 
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
-      <Navigation />
       <AppRoutes />
     </BrowserRouter>
   </AuthProvider>
