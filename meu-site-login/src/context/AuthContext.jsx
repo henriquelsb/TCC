@@ -52,9 +52,10 @@ export const AuthProvider = ({ children }) => {
     await signOut(auth);
   };
 
-  const updateProfile = async (updates) => {
-    if (!user) return;
-    const userRef = doc(db, 'users', user.uid);
+  const updateProfile = async (updates, uid = null) => {
+    const targetUid = uid || user?.uid;
+    if (!targetUid) return;
+    const userRef = doc(db, 'users', targetUid);
     await updateDoc(userRef, {
       profile: updates
     });

@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProfilePage from './pages/ProfilePage'; // ✅
+import AdminPanel from './components/AdminPanel'; // ✅
 
 const ProtectedRoute = ({ children, adminOnly }) => {
   const { user, isAdmin } = useAuth();
@@ -18,7 +19,8 @@ const AppRoutes = () => (
   <>
     <nav style={{ padding: '10px' }}>
       <Link to="/" style={{ marginRight: '10px' }}>Home</Link>
-      <Link to="/profile" style={{ marginRight: '10px' }}>Perfil</Link> {/* ✅ */}
+      <Link to="/profile" style={{ marginRight: '10px' }}>Perfil</Link>
+      <Link to="/admin-panel" style={{ marginRight: '10px' }}>Painel Admin</Link> {/* ✅ */}
       <Link to="/login" style={{ marginRight: '10px' }}>Login</Link>
       <Link to="/register">Cadastrar</Link>
     </nav>
@@ -46,6 +48,14 @@ const AppRoutes = () => (
         element={
           <ProtectedRoute>
             <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin-panel"
+        element={
+          <ProtectedRoute adminOnly>
+            <AdminPanel />
           </ProtectedRoute>
         }
       />
