@@ -3,9 +3,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updatePassword
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 const AuthContext = createContext();
@@ -35,7 +36,11 @@ export const AuthProvider = ({ children }) => {
     await setDoc(doc(db, 'users', res.user.uid), {
       email,
       isAdmin: isAdminFlag,
-      profile: {} // perfil vazio inicialmente ✅
+      profile: {
+        nome: '',
+        sobrenome: '',
+        telefone: ''
+      }
     });
   };
 
@@ -47,8 +52,21 @@ export const AuthProvider = ({ children }) => {
     await signOut(auth);
   };
 
+  const updateProfile = async (updates) => {
+    if (!user) return;
+    const userRef = doc(db, 'users', user.uid);
+    await updateDoc(userRef, {
+      profile: updates
+    });
+  };
+
+  const changePassword = async (newPassword) => {
+    if (!user) return;
+    await updatePassword(user, newPassword);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAdmin, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAdmin, login, register, logout, updateProfile, changePassword }}>
       {children}
     </AuthContext.Provider>
   );

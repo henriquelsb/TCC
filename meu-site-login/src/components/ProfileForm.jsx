@@ -1,64 +1,54 @@
-// src/components/ProfileForm.jsx
-import React, { useEffect, useState } from 'react';
-import { db } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const ProfileForm = () => {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState({ nome: '', sobrenome: '', telefone: '' });
-  const [loading, setLoading] = useState(true);
+  const { user, updateProfile, changePassword } = useAuth();
+  const [form, setForm] = useState({ nome: '', sobrenome: '', telefone: '', novaSenha: '' });
 
   useEffect(() => {
-    const loadProfile = async () => {
-      const ref = doc(db, 'users', user.uid);
-      const snap = await getDoc(ref);
-      if (snap.exists() && snap.data().profile) {
-        setProfile(snap.data().profile);
+    const loadData = async () => {
+      if (!user) return;
+      const docRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setForm((prev) => ({ ...prev, ...docSnap.data().profile }));
       }
-      setLoading(false);
     };
-    if (user) loadProfile();
+    loadData();
   }, [user]);
 
   const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    const ref = doc(db, 'users', user.uid);
-    await updateDoc(ref, { profile });
-    alert('Perfil salvo com sucesso!');
+  const handleSave = async () => {
+    await updateProfile({ nome: form.nome, sobrenome: form.sobrenome, telefone: form.telefone });
+    alert('Perfil atualizado!');
   };
 
-  if (loading) return <p>Carregando perfil...</p>;
+  const handlePasswordChange = async () => {
+    if (!form.novaSenha || form.novaSenha.length < 6) {
+      return alert('A nova senha deve ter no mínimo 6 caracteres.');
+    }
+    await changePassword(form.novaSenha);
+    alert('Senha atualizada!');
+    setForm({ ...form, novaSenha: '' });
+  };
 
   return (
-    <form onSubmit={handleSave}>
-      <input
-        type="text"
-        name="nome"
-        placeholder="Nome"
-        value={profile.nome}
-        onChange={handleChange}
-      />
-      <input
-        type="text"
-        name="sobrenome"
-        placeholder="Sobrenome"
-        value={profile.sobrenome}
-        onChange={handleChange}
-      />
-      <input
-        type="tel"
-        name="telefone"
-        placeholder="Telefone"
-        value={profile.telefone}
-        onChange={handleChange}
-      />
-      <button type="submit">Salvar</button>
-    </form>
+    <div>
+      <h3>Informações do Perfil</h3>
+      <input name="nome" placeholder="Nome" value={form.nome} onChange={handleChange} /><br />
+      <input name="sobrenome" placeholder="Sobrenome" value={form.sobrenome} onChange={handleChange} /><br />
+      <input name="telefone" placeholder="Telefone" value={form.telefone} onChange={handleChange} /><br />
+      <button onClick={handleSave}>Salvar Perfil</button>
+
+      <h4>Alterar Senha</h4>
+      <input type="password" name="novaSenha" placeholder="Nova senha" value={form.novaSenha} onChange={handleChange} /><br />
+      <button onClick={handlePasswordChange}>Atualizar Senha</button>
+    </div>
   );
 };
 
